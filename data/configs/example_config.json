@@ -1,0 +1,66 @@
+{
+  "geometry": {
+    "file": "data/geometries/simple_cylinder.stl",
+    "scale": 0.001
+  },
+  "mesh": {
+    "baseSize": 0.5,
+    "boundaryLayerHeight": 0.01,
+    "growthRatio": 1.2,
+    "numBoundaryLayers": 3,
+    "refinementRegions": [
+      {
+        "center": [0, 0, 10],
+        "radius": 5,
+        "size": 0.1
+      }
+    ]
+  },
+  "simulation": {
+    "startTime": 0.0,
+    "endTime": 0.01,
+    "timeStep": 1e-6,
+    "outputInterval": 1e-4,
+    "checkpointInterval": 1e-3,
+    "maxIterations": 100,
+    "convergenceTolerance": 1e-6
+  },
+  "physics": {
+    "turbulenceModel": "k-epsilon",
+    "combustionModel": "flamelet"
+  },
+  "combustion": {
+    "mechanism": "data/mechanisms/ethanol_gasoline.dat",
+    "ethanolFraction": 0.15,
+    "spark": {
+      "location": [0, 0, 10],
+      "time": 0.001,
+      "energy": 50,
+      "kernelRadius": 0.5
+    }
+  },
+  "initialConditions": {
+    "temperature": 300.0,
+    "pressure": 101325.0,
+    "velocity": [0, 0, 0]
+  },
+  "boundaryConditions": {
+    "walls": {
+      "type": "wall",
+      "velocity": "no-slip",
+      "temperature": "adiabatic"
+    },
+    "inlet": {
+      "type": "inlet",
+      "velocity": [10, 0, 0],
+      "temperature": 300.0
+    },
+    "outlet": {
+      "type": "outlet",
+      "pressure": 101325.0
+    }
+  },
+  "parallel": {
+    "numThreads": 8
+  }
+}
