@@ -12,6 +12,7 @@ A high-performance computational fluid dynamics (CFD) simulation system for anal
   - Detailed chemical kinetics (Chemkin format)
   - Spark ignition and flame propagation
 - **Parallel Computing**: OpenMP support for multi-core execution
+- **Operational Tooling**: Config validation, structured logging, and run summaries
 - **Post-Processing**: Python-based visualization and analysis tools
 
 ## Requirements
@@ -62,13 +63,13 @@ ctest
 ### Mesh Generation
 
 ```bash
-./bin/cfd_engine --mode=mesh --config=config.json
+./bin/cfd_engine --mode=mesh --config=config.json --log=run.log --log-level=info
 ```
 
 ### Run Simulation
 
 ```bash
-./bin/cfd_engine --mode=solve --config=config.json --threads=8
+./bin/cfd_engine --mode=solve --config=config.json --threads=8 --log-level=debug
 ```
 
 ### Post-Processing

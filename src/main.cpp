@@ -1,14 +1,14 @@
-#include <iostream>
-#include <string>
-#include <memory>
 #include <cstdlib>
+#include <iostream>
+#include <memory>
+#include <string>
 
-// Forward declarations
-namespace cfd {
-    class CFDSolver;
-    class ConfigReader;
-    class Logger;
-}
+#include "io/ConfigReader.h"
+#include "io/Logger.h"
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 void printUsage(const char* programName) {
     std::cout << "CFD Combustion Engine Simulation System\n";
@@ -17,6 +17,8 @@ void printUsage(const char* programName) {
     std::cout << "  --mode=<mode>       Operation mode: mesh, solve, postprocess\n";
     std::cout << "  --config=<file>     Configuration file (JSON format)\n";
     std::cout << "  --threads=<n>       Number of OpenMP threads (default: auto)\n";
+    std::cout << "  --log=<file>        Optional log file path\n";
+    std::cout << "  --log-level=<lvl>   Log level: trace, debug, info, warn, error\n";
     std::cout << "  --help              Display this help message\n";
     std::cout << "  --version           Display version information\n\n";
     std::cout << "Examples:\n";
@@ -33,6 +35,8 @@ void printVersion() {
 struct CommandLineArgs {
     std::string mode;
     std::string configFile;
+    std::string logFile;
+    std::string logLevel = "info";
     int numThreads = -1;  // -1 means auto-detect
     bool showHelp = false;
     bool showVersion = false;
@@ -54,6 +58,10 @@ CommandLineArgs parseCommandLine(int argc, char* argv[]) {
             args.configFile = arg.substr(9);
         } else if (arg.find("--threads=") == 0) {
             args.numThreads = std::stoi(arg.substr(10));
+        } else if (arg.find("--log=") == 0) {
+            args.logFile = arg.substr(6);
+        } else if (arg.find("--log-level=") == 0) {
+            args.logLevel = arg.substr(12);
         } else {
             std::cerr << "Unknown option: " << arg << "\n";
             args.showHelp = true;
@@ -64,24 +72,57 @@ CommandLineArgs parseCommandLine(int argc, char* argv[]) {
 }
 
 int runMeshGeneration(const std::string& configFile) {
-    std::cout << "=== Mesh Generation Mode ===\n";
-    std::cout << "Config file: " << configFile << "\n";
-    std::cout << "Mesh generation not yet implemented.\n";
+    cfd::Logger::instance().info("=== Mesh Generation Mode ===");
+    cfd::Logger::instance().info("Loading config: " + configFile);
+    cfd::ConfigReader reader = cfd::ConfigReader::fromFile(configFile);
+    for (const auto& warning : reader.warnings()) {
+        cfd::Logger::instance().warn(warning);
+    }
+    if (!reader.isValid()) {
+        for (const auto& error : reader.errors()) {
+            cfd::Logger::instance().error(error);
+        }
+        return 1;
+    }
+    cfd::Logger::instance().info("Config summary:\n" + reader.summarize());
+    cfd::Logger::instance().info("Mesh generation pipeline not yet implemented.");
     return 0;
 }
 
 int runSimulation(const std::string& configFile, int numThreads) {
-    std::cout << "=== Simulation Mode ===\n";
-    std::cout << "Config file: " << configFile << "\n";
-    std::cout << "Threads: " << (numThreads > 0 ? std::to_string(numThreads) : "auto") << "\n";
-    std::cout << "Simulation not yet implemented.\n";
+    cfd::Logger::instance().info("=== Simulation Mode ===");
+    cfd::Logger::instance().info("Loading config: " + configFile);
+    cfd::ConfigReader reader = cfd::ConfigReader::fromFile(configFile);
+    for (const auto& warning : reader.warnings()) {
+        cfd::Logger::instance().warn(warning);
+    }
+    if (!reader.isValid()) {
+        for (const auto& error : reader.errors()) {
+            cfd::Logger::instance().error(error);
+        }
+        return 1;
+    }
+    cfd::Logger::instance().info("Config summary:\n" + reader.summarize());
+    cfd::Logger::instance().info("Threads: " + (numThreads > 0 ? std::to_string(numThreads) : "auto"));
+    cfd::Logger::instance().info("Simulation pipeline not yet implemented.");
     return 0;
 }
 
 int runPostProcessing(const std::string& configFile) {
-    std::cout << "=== Post-Processing Mode ===\n";
-    std::cout << "Config file: " << configFile << "\n";
-    std::cout << "Post-processing not yet implemented.\n";
+    cfd::Logger::instance().info("=== Post-Processing Mode ===");
+    cfd::Logger::instance().info("Loading config: " + configFile);
+    cfd::ConfigReader reader = cfd::ConfigReader::fromFile(configFile);
+    for (const auto& warning : reader.warnings()) {
+        cfd::Logger::instance().warn(warning);
+    }
+    if (!reader.isValid()) {
+        for (const auto& error : reader.errors()) {
+            cfd::Logger::instance().error(error);
+        }
+        return 1;
+    }
+    cfd::Logger::instance().info("Config summary:\n" + reader.summarize());
+    cfd::Logger::instance().info("Post-processing pipeline not yet implemented.");
     return 0;
 }
 
@@ -111,6 +152,27 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
+    if (!args.logFile.empty()) {
+        cfd::Logger::instance().setLogFile(args.logFile);
+    }
+
+    if (args.logLevel == "trace") {
+        cfd::Logger::instance().setLevel(cfd::LogLevel::Trace);
+    } else if (args.logLevel == "debug") {
+        cfd::Logger::instance().setLevel(cfd::LogLevel::Debug);
+    } else if (args.logLevel == "info") {
+        cfd::Logger::instance().setLevel(cfd::LogLevel::Info);
+    } else if (args.logLevel == "warn") {
+        cfd::Logger::instance().setLevel(cfd::LogLevel::Warn);
+    } else if (args.logLevel == "error") {
+        cfd::Logger::instance().setLevel(cfd::LogLevel::Error);
+    } else {
+        std::cerr << "Unknown log level: " << args.logLevel << "\n";
+        return 1;
+    }
+
+    cfd::Logger::instance().debug("Logger initialized.");
+
     // Set OpenMP threads if specified
     if (args.numThreads > 0) {
         #ifdef _OPENMP
