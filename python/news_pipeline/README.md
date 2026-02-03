@@ -2,8 +2,6 @@
 
 This package provides a Kafka consumer that ingests news feed messages, stores the raw payloads in Amazon S3, and catalogs metadata in DynamoDB for downstream analysis.
 
-For a primer on the underlying services and pipeline terminology, see [News Pipeline Concepts](../../docs/NEWS_PIPELINE_CONCEPTS.md).
-
 ## Architecture
 
 1. **Kafka**: News feed messages are consumed from a configured topic.
